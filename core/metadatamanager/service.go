@@ -3,6 +3,7 @@ package metadatamanager
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/bogem/id3v2/v2"
 )
@@ -33,6 +34,11 @@ func (s *mp3Service) UpdateTags(songID string, tags map[string]string) error {
 	// Verify file access
 	if info, err := os.Stat(path); err != nil || info.IsDir() {
 		return fmt.Errorf("file is inaccessible or is a directory: %s", path)
+	}
+
+	// Ensure we are only processing MP3 files as id3v2 library is specific to ID3 tags
+	if !strings.HasSuffix(strings.ToLower(path), ".mp3") {
+		return fmt.Errorf("metadata editing is currently only supported for MP3 files")
 	}
 
 	fmt.Printf("Updating tags for: %s\n", path)
