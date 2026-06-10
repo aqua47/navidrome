@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/bogem/id3v2/v2"
+	"github.com/navidrome/navidrome/log"
 )
 
 type SongRepository interface {
@@ -42,7 +43,7 @@ func (s *mp3Service) UpdateTags(ctx context.Context, songID string, tags map[str
 		return fmt.Errorf("metadata editing is currently only supported for MP3 files")
 	}
 
-	fmt.Printf("Updating tags for: %s\n", path)
+	log.Info(ctx, "Updating MP3 tags", "path", path, "songID", songID)
 
 	// Open the MP3 file
 	tag, err := id3v2.Open(path, id3v2.Options{Parse: true})
@@ -81,7 +82,7 @@ func (s *mp3Service) UpdateTags(ctx context.Context, songID string, tags map[str
 			// SetDisc handles strings like "1" or "1/2"
 			tag.SetDisc(value)
 		default:
-			fmt.Printf("Warning: Tag '%s' not supported for MP3 metadata. Ignoring.\n", key)
+			log.Warn(ctx, "Tag not supported for MP3 metadata. Ignoring.", "tag", key)
 		}
 	}
 
