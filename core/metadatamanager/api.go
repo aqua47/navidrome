@@ -32,7 +32,7 @@ func (h *Handler) UpdateSong(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.UpdateTags(songID, tags); err != nil {
+	if err := h.service.UpdateTags(r.Context(), songID, tags); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

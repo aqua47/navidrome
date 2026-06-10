@@ -1,6 +1,7 @@
 package metadatamanager
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strings"
@@ -9,12 +10,12 @@ import (
 )
 
 type SongRepository interface {
-	GetSongPath(songID string) (string, error)
-	RefreshSong(songID string) error
+	GetSongPath(ctx context.Context, songID string) (string, error)
+	RefreshSong(ctx context.Context, songID string) error
 }
 
 type MetadataService interface {
-	UpdateTags(songID string, tags map[string]string) error
+	UpdateTags(ctx context.Context, songID string, tags map[string]string) error
 }
 
 type mp3Service struct {
@@ -25,8 +26,8 @@ func NewService(repo SongRepository) MetadataService {
 	return &mp3Service{repo: repo}
 }
 
-func (s *mp3Service) UpdateTags(songID string, tags map[string]string) error {
-	path, err := s.repo.GetSongPath(songID)
+func (s *mp3Service) UpdateTags(ctx context.Context, songID string, tags map[string]string) error {
+	path, err := s.repo.GetSongPath(ctx, songID)
 	if err != nil {
 		return fmt.Errorf("could not retrieve song path: %w", err)
 	}
@@ -90,5 +91,5 @@ func (s *mp3Service) UpdateTags(songID string, tags map[string]string) error {
 	}
 
 	// Trigger a rescan of this song so Navidrome updates its database
-	return s.repo.RefreshSong(songID)
+	return s.repo.RefreshSong(ctx, songID)
 }
