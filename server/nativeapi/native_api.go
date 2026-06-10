@@ -14,6 +14,7 @@ import (
 	"github.com/navidrome/navidrome/conf"
 	"github.com/navidrome/navidrome/core"
 	"github.com/navidrome/navidrome/core/metrics"
+	"github.com/navidrome/navidrome/core/metadatamanager"
 	playlistsvc "github.com/navidrome/navidrome/core/playlists"
 	"github.com/navidrome/navidrome/log"
 	"github.com/navidrome/navidrome/model"
@@ -45,10 +46,11 @@ type Router struct {
 	maintenance   core.Maintenance
 	pluginManager PluginManager
 	imgUpload     core.ImageUploadService
+	metadata      metadatamanager.MetadataService
 }
 
-func New(ds model.DataStore, share core.Share, playlists playlistsvc.Playlists, insights metrics.Insights, libraryService core.Library, userService core.User, maintenance core.Maintenance, pluginManager PluginManager, imgUpload core.ImageUploadService) *Router {
-	r := &Router{ds: ds, share: share, playlists: playlists, insights: insights, libs: libraryService, users: userService, maintenance: maintenance, pluginManager: pluginManager, imgUpload: imgUpload}
+func New(ds model.DataStore, share core.Share, playlists playlistsvc.Playlists, insights metrics.Insights, libraryService core.Library, userService core.User, maintenance core.Maintenance, pluginManager PluginManager, imgUpload core.ImageUploadService, metadata metadatamanager.MetadataService) *Router {
+	r := &Router{ds: ds, share: share, playlists: playlists, insights: insights, libs: libraryService, users: userService, maintenance: maintenance, pluginManager: pluginManager, imgUpload: imgUpload, metadata: metadata}
 	r.Handler = r.routes()
 	return r
 }
@@ -81,6 +83,7 @@ func (api *Router) routes() http.Handler {
 		api.addPlaylistTrackRoute(r)
 		api.addSongPlaylistsRoute(r)
 		api.addQueueRoute(r)
+		api.addMetadataRoute(r)
 		api.addMissingFilesRoute(r)
 		api.addKeepAliveRoute(r)
 		api.addInsightsRoute(r)
@@ -173,6 +176,11 @@ func (api *Router) addPlaylistTrackRoute(r chi.Router) {
 			})
 		})
 	})
+}
+
+func (api *Router) addMetadataRoute(r chi.Router) {
+	handler := metadatamanager.NewHandler(api.metadata)
+	handler.BindRoutes(r)
 }
 
 func (api *Router) addSongPlaylistsRoute(r chi.Router) {

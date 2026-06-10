@@ -3,6 +3,8 @@ package metadatamanager
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/go-chi/chi/v5"
 )
 
 type Handler struct {
@@ -13,13 +15,12 @@ func NewHandler(s MetadataService) *Handler {
 	return &Handler{service: s}
 }
 
-func (h *Handler) BindRoutes(mux *http.ServeMux) {
-	// Use a clear prefix to avoid conflicts with Subsonic routes
-	mux.HandleFunc("POST /api/extra/metadata/{id}", h.UpdateSong)
+func (h *Handler) BindRoutes(r chi.Router) {
+	r.Post("/song/{id}/tag", h.UpdateSong)
 }
 
 func (h *Handler) UpdateSong(w http.ResponseWriter, r *http.Request) {
-	songID := r.PathValue("id")
+	songID := chi.URLParam(r, "id")
 	if songID == "" {
 		http.Error(w, "Missing song identifier", http.StatusBadRequest)
 		return
