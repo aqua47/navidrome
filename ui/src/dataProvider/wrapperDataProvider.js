@@ -220,6 +220,12 @@ const wrapperDataProvider = {
       data: json,
     }))
   },
+  editSongTags: (songId, tags) => {
+    return httpClient(`${REST_URL}/song/${songId}/tag`, {
+      method: 'POST',
+      body: JSON.stringify(tags),
+    }).then(({ json }) => ({ data: json }))
+  },
 }
 
 export default wrapperDataProvider
