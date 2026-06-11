@@ -2,7 +2,6 @@ package metadatamanager
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/navidrome/navidrome/core"
 	"github.com/navidrome/navidrome/model"
