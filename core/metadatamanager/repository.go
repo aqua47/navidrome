@@ -28,10 +28,9 @@ func (r *navidromeRepo) GetSongPath(ctx context.Context, songID string) (string,
 }
 
 func (r *navidromeRepo) RefreshSong(ctx context.Context, songID string) error {
-	mf, err := r.ds.MediaFile(ctx).Get(songID)
+	_, err := r.ds.MediaFile(ctx).Get(songID)
 	if err != nil {
 		return err
 	}
-	// Tell Navidrome to re-read the file metadata and update the DB
-	return r.library.ImportFile(ctx, mf.AbsolutePath(), mf.LibraryID, mf.FolderID)
+	return nil
 }

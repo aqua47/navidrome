@@ -5,6 +5,7 @@ package cmd
 import (
 	"context"
 
+	"github.com/aqua47/navidrome/core/metadatamanager"
 	"github.com/google/wire"
 	"github.com/navidrome/navidrome/adapters/lastfm"
 	"github.com/navidrome/navidrome/adapters/listenbrainz"
@@ -37,6 +38,8 @@ var allProviders = wire.NewSet(
 	public.New,
 	persistence.New,
 	lastfm.NewRouter,
+	metadatamanager.NewRepository,
+	metadatamanager.NewService,
 	listenbrainz.NewRouter,
 	events.GetBroker,
 	scanner.New,

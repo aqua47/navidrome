@@ -61,26 +61,21 @@ func (s *mp3Service) UpdateTags(ctx context.Context, songID string, tags map[str
 		case "album":
 			tag.SetAlbum(value)
 		case "albumArtist":
-			tag.SetAlbumArtist(value)
+			tag.AddTextFrame("TPE2", id3v2.EncodingUTF8, value)
 		case "genre":
 			tag.SetGenre(value)
 		case "comment":
-			commentFrame := id3v2.CommentFrame{
-				Encoding:    id3v2.EncodingUTF8,
-				Language:    "eng", // Default language, could be made configurable
-				Description: "",
-				Text:        value,
-			}
-			tag.AddCommentFrame(commentFrame)
+			tag.AddCommentFrame(id3v2.CommentFrame{
+				Encoding: id3v2.EncodingUTF8,
+				Language: "eng",
+				Text:     value,
+			})
 		case "year":
-			// TDRC frame is used for the recording date/year in ID3v2.4
-			tag.AddFrame("TDRC", tag.TextFrame(value))
+			tag.SetYear(value)
 		case "trackNumber":
-			// SetTrack handles strings like "01" or "01/12"
-			tag.SetTrack(value)
+			tag.AddTextFrame("TRCK", id3v2.EncodingUTF8, value)
 		case "disc":
-			// SetDisc handles strings like "1" or "1/2"
-			tag.SetDisc(value)
+			tag.AddTextFrame("TPOS", id3v2.EncodingUTF8, value)
 		default:
 			log.Warn(ctx, "Tag not supported for MP3 metadata. Ignoring.", "tag", key)
 		}
