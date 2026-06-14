@@ -85,7 +85,7 @@ func CreateNativeAPIRouter(ctx context.Context) *nativeapi.Router {
 	library := core.NewLibrary(dataStore, modelScanner, watcher, broker, manager)
 	user := core.NewUser(dataStore, manager)
 	maintenance := core.NewMaintenance(dataStore)
-	songRepository := metadatamanager.NewRepository(dataStore, library)
+	songRepository := metadatamanager.NewRepository(dataStore, library, modelScanner)
 	metadataService := metadatamanager.NewService(songRepository)
 	router := nativeapi.New(dataStore, share, playlistsPlaylists, insights, library, user, maintenance, manager, imageUploadService, metadataService)
 	return router

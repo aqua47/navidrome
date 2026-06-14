@@ -10,12 +10,14 @@ import (
 type navidromeRepo struct {
 	ds      model.DataStore
 	library core.Library
+	scanner model.Scanner
 }
 
-func NewRepository(ds model.DataStore, library core.Library) SongRepository {
+func NewRepository(ds model.DataStore, library core.Library, scanner model.Scanner) SongRepository {
 	return &navidromeRepo{
 		ds:      ds,
 		library: library,
+		scanner: scanner,
 	}
 }
 
@@ -28,9 +30,8 @@ func (r *navidromeRepo) GetSongPath(ctx context.Context, songID string) (string,
 }
 
 func (r *navidromeRepo) RefreshSong(ctx context.Context, songID string) error {
-	_, err := r.ds.MediaFile(ctx).Get(songID)
-	if err != nil {
-		return err
-	}
-	return nil
+	// Déclenche un scan de la bibliothèque pour détecter les changements de tags.
+	// ScanAll avec false (quick scan) est la méthode disponible via l'interface model.Scanner.
+	_, err := r.scanner.ScanAll(ctx, false)
+	return err
 }
