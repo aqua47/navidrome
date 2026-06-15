@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/bogem/id3v2/v2"
@@ -33,20 +34,23 @@ func (s *mp3Service) UpdateTags(ctx context.Context, songID string, tags map[str
 		return fmt.Errorf("could not retrieve song path: %w", err)
 	}
 
-	// Verify file access
-	if info, err := os.Stat(path); err != nil || info.IsDir() {
-		return fmt.Errorf("file is inaccessible or is a directory: %s", path)
+	// Clean the path to mitigate Path Traversal warnings (gosec G703)
+	cleanPath := filepath.Clean(path)
+
+	// Verify file access using the cleaned path
+	if info, err := os.Stat(cleanPath); err != nil || info.IsDir() {
+		return fmt.Errorf("file is inaccessible or is a directory: %s", cleanPath)
 	}
 
 	// Ensure we are only processing MP3 files as id3v2 library is specific to ID3 tags
-	if !strings.HasSuffix(strings.ToLower(path), ".mp3") {
+	if !strings.HasSuffix(strings.ToLower(cleanPath), ".mp3") {
 		return fmt.Errorf("metadata editing is currently only supported for MP3 files")
 	}
 
-	log.Info(ctx, "Updating MP3 tags", "path", path, "songID", songID)
+	log.Info(ctx, "Updating MP3 tags", "path", cleanPath, "songID", songID)
 
-	// Open the MP3 file
-	tag, err := id3v2.Open(path, id3v2.Options{Parse: true})
+	// Open the MP3 file using the cleaned path
+	tag, err := id3v2.Open(cleanPath, id3v2.Options{Parse: true})
 	if err != nil {
 		return fmt.Errorf("error opening MP3 file: %w", err)
 	}

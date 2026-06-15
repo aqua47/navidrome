@@ -222,7 +222,7 @@ const wrapperDataProvider = {
   },
   editSongTags: (songId, tags) => {
     if (!songId) {
-      return Promise.reject(new Error('Song ID is required'));
+      return Promise.reject(new Error('Song ID is required'))
     }
     return httpClient(`${REST_URL}/song/${songId}/tag`, {
       method: 'POST',
