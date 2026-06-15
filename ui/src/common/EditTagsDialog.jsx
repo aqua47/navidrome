@@ -56,7 +56,6 @@ const EditTagsDialog = ({ record, open, onClose }) => {
       })
       .catch((err) => {
         notify('notification.http_error', { type: 'warning' })
-        console.error(err)
       })
   }
 
