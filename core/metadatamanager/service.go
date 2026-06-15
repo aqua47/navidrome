@@ -72,6 +72,12 @@ func (s *mp3Service) UpdateTags(ctx context.Context, songID string, tags map[str
 			})
 		case "bpm":
 			tag.AddTextFrame("TBPM", id3v2.EncodingUTF8, value)
+		case "composer":
+			tag.AddTextFrame("TCOM", id3v2.EncodingUTF8, value)
+		case "grouping":
+			tag.AddTextFrame("TIT1", id3v2.EncodingUTF8, value)
+		case "mood":
+			tag.AddTextFrame("TMOO", id3v2.EncodingUTF8, value)
 		case "year":
 			tag.SetYear(value)
 		case "trackNumber":

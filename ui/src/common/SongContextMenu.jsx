@@ -309,7 +309,6 @@ export const SongContextMenu = ({
         record={record}
         onClose={() => {
           setEditTagsOpen(false)
-          refresh()
         }}
       />
     </span>
