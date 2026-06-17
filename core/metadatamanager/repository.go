@@ -30,8 +30,6 @@ func (r *navidromeRepo) GetSongPath(ctx context.Context, songID string) (string,
 }
 
 func (r *navidromeRepo) RefreshSong(ctx context.Context, songID string) error {
-	// Déclenche un scan de la bibliothèque pour détecter les changements de tags.
-	// ScanAll avec false (quick scan) est la méthode disponible via l'interface model.Scanner.
 	_, err := r.scanner.ScanAll(ctx, false)
 	return err
 }

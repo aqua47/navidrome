@@ -67,7 +67,6 @@ const EditTagsDialog = ({ record, open, onClose }) => {
 
   const handleDeleteArtwork = () => {
     const id = record.mediaFileId || record.id
-    // Utilisation de httpClient pour gérer l'authentification et chemin absolu
     httpClient(`/api/song/${id}/artwork`, {
       method: 'POST',
       body: '',
@@ -86,8 +85,6 @@ const EditTagsDialog = ({ record, open, onClose }) => {
     dataProvider
       .editSongTags(id, values)
       .then(() => {
-        // Explicitly fetch the updated song to ensure the cache is fresh
-        // before triggering a global refresh.
         return dataProvider.getOne('song', { id: id })
       })
       .then(() => {
