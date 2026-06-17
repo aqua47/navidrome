@@ -18,6 +18,36 @@ func NewHandler(s MetadataService) *Handler {
 func (h *Handler) BindRoutes(r chi.Router) {
 	r.Post("/song/{id}/tag", h.UpdateSong)
 	r.Post("/song/{id}/artwork", h.UpdateArtwork)
+	r.Post("/youtube/download", h.DownloadYouTube)
+}
+
+type YTDownloadRequest struct {
+	URL     string `json:"url"`
+	Format  string `json:"format"`  // ex: "mp3", "flac", "m4a"
+	Quality string `json:"quality"` // ex: "0" (better), "5" (mid)
+}
+
+func (h *Handler) DownloadYouTube(w http.ResponseWriter, r *http.Request) {
+	var req YTDownloadRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid JSON format", http.StatusBadRequest)
+		return
+	}
+
+	if req.URL == "" {
+		http.Error(w, "Missing YouTube URL", http.StatusBadRequest)
+		return
+	}
+
+	go func() {
+		ctx := r.Context()
+		if err := h.service.DownloadFromYouTube(ctx, req.URL, req.Format, req.Quality); err != nil {
+			return
+		}
+	}()
+
+	w.WriteHeader(http.StatusAccepted)
+	w.Write([]byte(`{"message": "Download started in background"}`))
 }
 
 func (h *Handler) UpdateSong(w http.ResponseWriter, r *http.Request) {

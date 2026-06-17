@@ -29,7 +29,16 @@ func (r *navidromeRepo) GetSongPath(ctx context.Context, songID string) (string,
 	return mf.AbsolutePath(), nil
 }
 
+func (r *navidromeRepo) GetMusicFolder() string {
+	return "/music"
+}
+
 func (r *navidromeRepo) RefreshSong(ctx context.Context, songID string) error {
+	_, err := r.scanner.ScanAll(ctx, false)
+	return err
+}
+
+func (r *navidromeRepo) ForceScan(ctx context.Context) error {
 	_, err := r.scanner.ScanAll(ctx, false)
 	return err
 }
