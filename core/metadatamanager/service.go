@@ -3,6 +3,7 @@ package metadatamanager
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -18,6 +19,7 @@ type SongRepository interface {
 
 type MetadataService interface {
 	UpdateTags(ctx context.Context, songID string, tags map[string]string) error
+	UpdateArtwork(ctx context.Context, songID string, data io.Reader, mimeType string) error
 }
 
 type mp3Service struct {
@@ -34,10 +36,8 @@ func (s *mp3Service) UpdateTags(ctx context.Context, songID string, tags map[str
 		return fmt.Errorf("could not retrieve song path: %w", err)
 	}
 
-	// Clean the path to mitigate Path Traversal warnings (gosec G703)
 	cleanPath := filepath.Clean(path)
 
-	// Verify file access using the cleaned path
 	if info, err := os.Stat(cleanPath); err != nil || info.IsDir() {
 		return fmt.Errorf("file is inaccessible or is a directory: %s", cleanPath)
 	}
@@ -49,7 +49,6 @@ func (s *mp3Service) UpdateTags(ctx context.Context, songID string, tags map[str
 
 	log.Info(ctx, "Updating MP3 tags", "path", cleanPath, "songID", songID)
 
-	// Open the MP3 file using the cleaned path
 	tag, err := id3v2.Open(cleanPath, id3v2.Options{Parse: true})
 	if err != nil {
 		return fmt.Errorf("error opening MP3 file: %w", err)
@@ -93,11 +92,57 @@ func (s *mp3Service) UpdateTags(ctx context.Context, songID string, tags map[str
 		}
 	}
 
-	// Save the changes
 	if err = tag.Save(); err != nil {
 		return fmt.Errorf("error saving MP3 tags: %w", err)
 	}
 
-	// Trigger a rescan of this song so Navidrome updates its database
+	// Trigger a rescan of this song so Navidrome updates its database (seems to generate lag)
+	return s.repo.RefreshSong(ctx, songID)
+}
+
+func (s *mp3Service) UpdateArtwork(ctx context.Context, songID string, data io.Reader, mimeType string) error {
+	path, err := s.repo.GetSongPath(ctx, songID)
+	if err != nil {
+		return err
+	}
+
+	cleanPath := filepath.Clean(path)
+	if !strings.HasSuffix(strings.ToLower(cleanPath), ".mp3") {
+		return fmt.Errorf("artwork embedding is only supported for MP3 files")
+	}
+
+	imgBytes, err := io.ReadAll(data)
+	if err != nil {
+		return fmt.Errorf("failed to read image data: %w", err)
+	}
+
+	log.Info(ctx, "Embedding artwork in MP3", "path", cleanPath, "mime", mimeType)
+
+	tag, err := id3v2.Open(cleanPath, id3v2.Options{Parse: true})
+	if err != nil {
+		return err
+	}
+	defer tag.Close()
+
+	tag.DeleteFrames("APIC")
+
+	if len(imgBytes) > 0 {
+		if mimeType == "" {
+			mimeType = "image/jpeg"
+		}
+
+		tag.AddAttachedPicture(id3v2.PictureFrame{
+			Encoding:    id3v2.EncodingUTF8,
+			MimeType:    mimeType,
+			PictureType: id3v2.PTFrontCover,
+			Description: "Front Cover",
+			Picture:     imgBytes,
+		})
+	}
+
+	if err = tag.Save(); err != nil {
+		return err
+	}
+
 	return s.repo.RefreshSong(ctx, songID)
 }

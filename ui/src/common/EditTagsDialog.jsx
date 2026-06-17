@@ -7,6 +7,9 @@ import {
   Button,
   TextField,
   Grid,
+  Typography,
+  DialogContentText,
+  makeStyles,
 } from '@material-ui/core'
 import {
   useDataProvider,
@@ -14,8 +17,29 @@ import {
   useRefresh,
   useTranslate,
 } from 'react-admin'
+import { CoverArtAvatar } from './CoverArtAvatar'
+import { ImageUploadOverlay } from './ImageUploadOverlay'
+import { httpClient } from '../dataProvider'
+
+const useStyles = makeStyles((theme) => ({
+  imageContainer: {
+    position: 'relative',
+    width: 120,
+    height: 120,
+    margin: '0 auto 16px auto',
+    border: `1px solid ${theme.palette.divider}`,
+    borderRadius: theme.shape.borderRadius,
+    overflow: 'hidden',
+    backgroundColor: theme.palette.background.default,
+  },
+  avatar: {
+    width: '120px !important',
+    height: '120px !important',
+  },
+}))
 
 const EditTagsDialog = ({ record, open, onClose }) => {
+  const classes = useStyles()
   const dataProvider = useDataProvider()
   const notify = useNotify()
   const refresh = useRefresh()
@@ -34,9 +58,26 @@ const EditTagsDialog = ({ record, open, onClose }) => {
     comment: record.comment || '',
   })
 
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+
   const handleChange = (e) => {
     const { name, value } = e.target
     setValues((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleDeleteArtwork = () => {
+    const id = record.mediaFileId || record.id
+    // Utilisation de httpClient pour gérer l'authentification et chemin absolu
+    httpClient(`/api/song/${id}/artwork`, {
+      method: 'POST',
+      body: '',
+    })
+      .then(() => {
+        notify('message.coverRemoved')
+        setDeleteDialogOpen(false)
+        refresh()
+      })
+      .catch(() => notify('message.coverRemoveError', { type: 'warning' }))
   }
 
   const handleSubmit = (e) => {
@@ -71,6 +112,31 @@ const EditTagsDialog = ({ record, open, onClose }) => {
       <form onSubmit={handleSubmit}>
         <DialogContent dividers>
           <Grid container spacing={2}>
+            <Grid item xs={12} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <Typography variant="caption" color="textSecondary" gutterBottom style={{ fontWeight: 'bold', textTransform: 'uppercase' }}>
+                {translate('message.uploadCover')}
+              </Typography>
+              <div className={classes.imageContainer}>
+                <CoverArtAvatar
+                  record={record}
+                  variant="square"
+                  className={classes.avatar}
+                />
+                <ImageUploadOverlay
+                  entityType="song"
+                  entityId={record.mediaFileId || record.id}
+                  hasUploadedImage={record.hasUploadedImage}
+                  onImageChange={refresh}
+                />
+              </div>
+              <Button
+                size="small"
+                color="secondary"
+                onClick={() => setDeleteDialogOpen(true)}
+              >
+                {translate('message.removeCover')}
+              </Button>
+            </Grid>
             <Grid item xs={12}>
               <TextField
                 name="title"
@@ -182,6 +248,27 @@ const EditTagsDialog = ({ record, open, onClose }) => {
           </Button>
         </DialogActions>
       </form>
+
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        aria-labelledby="delete-artwork-dialog-title"
+      >
+        <DialogTitle id="delete-artwork-dialog-title">
+          {translate('message.removeCover')}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {translate('ra.message.are_you_sure')}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)}>{translate('ra.action.cancel')}</Button>
+          <Button onClick={handleDeleteArtwork} color="secondary" autoFocus>
+            {translate('ra.action.confirm')}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Dialog>
   )
 }

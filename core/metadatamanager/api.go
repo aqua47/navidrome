@@ -17,6 +17,7 @@ func NewHandler(s MetadataService) *Handler {
 
 func (h *Handler) BindRoutes(r chi.Router) {
 	r.Post("/song/{id}/tag", h.UpdateSong)
+	r.Post("/song/{id}/artwork", h.UpdateArtwork)
 }
 
 func (h *Handler) UpdateSong(w http.ResponseWriter, r *http.Request) {
@@ -36,6 +37,23 @@ func (h *Handler) UpdateSong(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *Handler) UpdateArtwork(w http.ResponseWriter, r *http.Request) {
+	songID := chi.URLParam(r, "id")
+	if songID == "" {
+		http.Error(w, "Missing song identifier", http.StatusBadRequest)
+		return
+	}
+
+	mimeType := r.Header.Get("Content-Type")
+	if err := h.service.UpdateArtwork(r.Context(), songID, r.Body, mimeType); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer r.Body.Close()
 
 	w.WriteHeader(http.StatusNoContent)
 }
