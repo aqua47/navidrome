@@ -109,8 +109,21 @@ const EditTagsDialog = ({ record, open, onClose }) => {
       <form onSubmit={handleSubmit}>
         <DialogContent dividers>
           <Grid container spacing={2}>
-            <Grid item xs={12} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <Typography variant="caption" color="textSecondary" gutterBottom style={{ fontWeight: 'bold', textTransform: 'uppercase' }}>
+            <Grid
+              item
+              xs={12}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+              }}
+            >
+              <Typography
+                variant="caption"
+                color="textSecondary"
+                gutterBottom
+                style={{ fontWeight: 'bold', textTransform: 'uppercase' }}
+              >
                 {translate('message.uploadCover')}
               </Typography>
               <div className={classes.imageContainer}>
@@ -260,7 +273,9 @@ const EditTagsDialog = ({ record, open, onClose }) => {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)}>{translate('ra.action.cancel')}</Button>
+          <Button onClick={() => setDeleteDialogOpen(false)}>
+            {translate('ra.action.cancel')}
+          </Button>
           <Button onClick={handleDeleteArtwork} color="secondary" autoFocus>
             {translate('ra.action.confirm')}
           </Button>
