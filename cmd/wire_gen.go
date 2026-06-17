@@ -8,7 +8,6 @@ package cmd
 
 import (
 	"context"
-
 	"github.com/google/wire"
 	"github.com/navidrome/navidrome/adapters/lastfm"
 	"github.com/navidrome/navidrome/adapters/listenbrainz"
@@ -36,13 +35,12 @@ import (
 	"github.com/navidrome/navidrome/server/nativeapi"
 	"github.com/navidrome/navidrome/server/public"
 	"github.com/navidrome/navidrome/server/subsonic"
+)
 
+import (
 	_ "github.com/navidrome/navidrome/adapters/deezer"
-
 	_ "github.com/navidrome/navidrome/adapters/gotaglib"
-
 	_ "github.com/navidrome/navidrome/adapters/lastfm"
-
 	_ "github.com/navidrome/navidrome/adapters/listenbrainz"
 )
 
@@ -86,8 +84,8 @@ func CreateNativeAPIRouter(ctx context.Context) *nativeapi.Router {
 	user := core.NewUser(dataStore, manager)
 	maintenance := core.NewMaintenance(dataStore)
 	songRepository := musicfilemanager.NewRepository(dataStore, library, modelScanner)
-	MusicFileService := musicfilemanager.NewService(songRepository)
-	router := nativeapi.New(dataStore, share, playlistsPlaylists, insights, library, user, maintenance, manager, imageUploadService, MusicFileService)
+	musicFileService := musicfilemanager.NewService(songRepository)
+	router := nativeapi.New(dataStore, share, playlistsPlaylists, insights, library, user, maintenance, manager, imageUploadService, musicFileService)
 	return router
 }
 

@@ -208,7 +208,7 @@ var _ = Describe("Song Endpoints", func() {
 		})
 	})
 
-	Describe("Song endpoints are read-only", func() {
+	Describe("Song endpoints are read-only", func() { //the fork allow read and write
 		Context("POST /song", func() {
 			It("should not be available (songs are not persistable)", func() {
 				newSong := model.MediaFile{
@@ -247,12 +247,18 @@ var _ = Describe("Song Endpoints", func() {
 		})
 
 		Context("DELETE /song/{id}", func() {
-			It("should not be available (songs are not persistable)", func() {
-				req := createAuthenticatedRequest("DELETE", "/song/song-1", nil)
+			It("should delete the music file and return success", func() {
+				targetSongID := "song-1"
+
+				req := createAuthenticatedRequest("DELETE", "/song/"+targetSongID, nil)
 				router.ServeHTTP(w, req)
 
-				// Should return 405 Method Not Allowed or 404 Not Found
-				Expect(w.Code).To(Equal(http.StatusMethodNotAllowed))
+				Expect(w.Code).To(Equal(http.StatusOK))
+
+				deletedTrack, err := mfRepo.Get(targetSongID)
+
+				Expect(err).To(HaveOccurred())
+				Expect(deletedTrack).To(BeNil())
 			})
 		})
 	})
