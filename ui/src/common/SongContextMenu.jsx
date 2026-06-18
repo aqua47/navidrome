@@ -293,7 +293,11 @@ export const SongContextMenu = ({
                 }
                 disabled={showInPlaylistDisabled}
                 style={
-                  showInPlaylistDisabled ? { pointerEvents: 'auto' } : undefined
+                  key === 'delete'
+                    ? { color: '#d32f2f' }
+                    : showInPlaylistDisabled 
+                      ? { pointerEvents: 'auto' } 
+                      : undefined
                 }
               >
                 {options[key].label}
