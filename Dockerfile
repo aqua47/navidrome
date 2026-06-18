@@ -153,11 +153,15 @@ LABEL org.opencontainers.image.source="https://github.com/navidrome/navidrome"
 
 # Install runtime dependencies
 # - libwebp + symlinks: enables native WebP encoding via purego/dlopen
-RUN apk add -U --no-cache ffmpeg mpv sqlite libwebp libwebpdemux libwebpmux && \
+RUN apk add -U --no-cache ffmpeg mpv sqlite libwebp libwebpdemux libwebpmux python3 curl && \
     for lib in libwebp libwebpdemux libwebpmux; do \
         target=$(ls /usr/lib/$lib.so.* 2>/dev/null | head -1) && \
         [ -n "$target" ] && ln -sf "$target" /usr/lib/$lib.so; \
     done
+
+# Download and install the latest yt-dlp binary
+RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp && \
+    chmod a+rx /usr/local/bin/yt-dlp
 
 # Copy navidrome binary (musl build for Docker, enables native libwebp)
 COPY --from=build-alpine /out/navidrome /app/

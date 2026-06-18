@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -14,12 +15,15 @@ import (
 
 type SongRepository interface {
 	GetSongPath(ctx context.Context, songID string) (string, error)
+	GetMusicFolder() string
 	RefreshSong(ctx context.Context, songID string) error
+	ForceScan(ctx context.Context) error
 }
 
 type MetadataService interface {
 	UpdateTags(ctx context.Context, songID string, tags map[string]string) error
 	UpdateArtwork(ctx context.Context, songID string, data io.Reader, mimeType string) error
+	DownloadFromYouTube(ctx context.Context, url string, format string, quality string) error
 }
 
 type mp3Service struct {
@@ -28,6 +32,60 @@ type mp3Service struct {
 
 func NewService(repo SongRepository) MetadataService {
 	return &mp3Service{repo: repo}
+}
+
+func (s *mp3Service) DownloadFromYouTube(ctx context.Context, url string, format string, quality string) error {
+	ytdlpPath, err := exec.LookPath("yt-dlp")
+	if err != nil {
+		log.Error(ctx, "yt-dlp binary not found in system PATH")
+		return fmt.Errorf("yt-dlp is not installed on the server: %w", err)
+	}
+
+	if format == "" {
+		format = "mp3"
+	}
+	if quality == "" {
+		quality = "0"
+	}
+
+	musicFolder := s.repo.GetMusicFolder()
+	downloadDir := filepath.Join(musicFolder, "Downloads")
+
+	if err := os.MkdirAll(downloadDir, 0755); err != nil {
+		log.Error(ctx, "Failed to create downloads directory", "error", err)
+		return fmt.Errorf("failed to create target folder: %w", err)
+	}
+
+	outputTemplate := filepath.Join(downloadDir, "%(artist,uploader)s - %(title)s.%(ext)s")
+
+	args := []string{
+		"-x",
+		"--audio-format", format,
+		"--audio-quality", quality,
+		"--embed-metadata",
+		"--embed-thumbnail",
+		"-o", outputTemplate,
+		url,
+	}
+
+	log.Info(ctx, "Starting YouTube download via yt-dlp", "url", url, "format", format, "quality", quality)
+
+	cmd := exec.Command(ytdlpPath, args...)
+
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Run(); err != nil {
+		log.Error(ctx, "yt-dlp execution failed", "error", err)
+		return fmt.Errorf("yt-dlp download failed: %w", err)
+	}
+
+	log.Info(ctx, "YouTube download completed successfully. Triggering library scan.")
+
+	if err := s.repo.ForceScan(ctx); err != nil {
+		log.Warn(ctx, "Failed to trigger library scan after download", "error", err)
+	}
+
+	return nil
 }
 
 func (s *mp3Service) UpdateTags(ctx context.Context, songID string, tags map[string]string) error {
