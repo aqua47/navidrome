@@ -109,7 +109,7 @@ var _ = Describe("Song Endpoints", func() {
 		mfRepo.SetData(testSongs)
 
 		// Create the native API router and wrap it with the JWTVerifier middleware
-		nativeRouter := New(ds, nil, nil, nil, tests.NewMockLibraryService(), tests.NewMockUserService(), nil, nil, nil, nil)
+		nativeRouter := New(ds, nil, nil, nil, tests.NewMockLibraryService(), tests.NewMockUserService(), nil, nil, nil, tests.NewMockMusicFileManager())
 		router = server.JWTVerifier(nativeRouter)
 		w = httptest.NewRecorder()
 	})
