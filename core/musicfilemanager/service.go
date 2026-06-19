@@ -7,9 +7,11 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/bogem/id3v2/v2"
 	"github.com/navidrome/navidrome/log"
+	"github.com/navidrome/navidrome/model"
 )
 
 type SongRepository interface {
@@ -30,6 +32,41 @@ type mp3Service struct {
 
 func NewService(repo SongRepository) MusicFileService {
 	return &mp3Service{repo: repo}
+}
+
+func (s *mp3Service) UploadSong(ctx context.Context, filename string, fileData io.Reader) (*model.MediaFile, error) {
+	cleanName := filepath.Base(filename)
+
+	targetDir := "music"
+	if err := os.MkdirAll(targetDir, 0755); err != nil {
+		return nil, fmt.Errorf("impossible de créer le dossier de destination: %w", err)
+	}
+
+	destPath := filepath.Join(targetDir, cleanName)
+	out, err := os.Create(destPath)
+	if err != nil {
+		return nil, fmt.Errorf("impossible de créer le fichier sur le disque: %w", err)
+	}
+	defer out.Close()
+
+	if _, err = io.Copy(out, fileData); err != nil {
+		return nil, fmt.Errorf("échec lors de l'écriture du fichier: %w", err)
+	}
+
+	newSong := &model.MediaFile{
+		ID:        strings.TrimSuffix(cleanName, filepath.Ext(cleanName)), // Identifiant basé sur le nom
+		Title:     strings.TrimSuffix(cleanName, filepath.Ext(cleanName)),
+		Path:      destPath,
+		Suffix:    "mp3",
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	if err := s.repo.AddSong(ctx, newSong); err != nil {
+		return nil, fmt.Errorf("impossible d'ajouter la musique au dépôt: %w", err)
+	}
+
+	return newSong, nil
 }
 
 func (s *mp3Service) UpdateTags(ctx context.Context, songID string, tags map[string]string) error {
