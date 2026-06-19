@@ -247,10 +247,41 @@ var _ = Describe("Song Endpoints", func() {
 		})
 
 		Context("DELETE /song/{id}", func() {
-			It("should delete the music file and return success", func() {
-				targetSongID := "song-1"
+			It("should return forbidden (403)", func() {
+				targetSongID := "song-2"
 
 				req := createAuthenticatedRequest("DELETE", "/song/"+targetSongID, nil)
+				router.ServeHTTP(w, req)
+
+				Expect(w.Code).To(Equal(http.StatusForbidden))
+
+				track, err := mfRepo.Get(targetSongID)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(track).ToNot(BeNil())
+			})
+		})
+
+		Context("DELETE /song/{id}", func() {
+			It("should delete the music file and return success", func() {
+				w = httptest.NewRecorder()
+
+				adminUser := model.User{
+					ID:          "admin-delete-user",
+					UserName:    "admindelete",
+					Name:        "Admin Delete User",
+					IsAdmin:     true,
+					NewPassword: "password",
+				}
+				err := userRepo.Put(&adminUser)
+				Expect(err).ToNot(HaveOccurred())
+
+				token, err := auth.CreateToken(&adminUser)
+				Expect(err).ToNot(HaveOccurred())
+
+				targetSongID := "song-1"
+
+				req := createUnauthenticatedRequest("DELETE", "/song/"+targetSongID, nil)
+				req.Header.Set(consts.UIAuthorizationHeader, "Bearer "+token)
 				router.ServeHTTP(w, req)
 
 				Expect(w.Code).To(Equal(http.StatusOK))
