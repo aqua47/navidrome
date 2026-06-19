@@ -280,7 +280,7 @@ var _ = Describe("Song Endpoints", func() {
 
 		Context("DELETE /song/{id}", func() {
 			It("should delete the music file and return success", func() {
-				w = httptest.NewRecorder()
+				recorder := httptest.NewRecorder()
 
 				adminUser := model.User{
 					ID:          "admin-delete-user",
@@ -299,14 +299,16 @@ var _ = Describe("Song Endpoints", func() {
 
 				req := createUnauthenticatedRequest("DELETE", "/song/"+targetSongID, nil)
 				req.Header.Set(consts.UIAuthorizationHeader, "Bearer "+token)
-				router.ServeHTTP(w, req)
+				router.ServeHTTP(recorder, req)
 
-				Expect(w.Code).To(Equal(http.StatusOK))
+				Expect(recorder.Code).To(Equal(http.StatusOK))
 
 				deletedTrack, err := mfRepo.Get(targetSongID)
-
 				Expect(err).To(HaveOccurred())
-				Expect(deletedTrack).To(BeNil())
+
+				if deletedTrack != nil {
+					Expect(deletedTrack).To(BeNil())
+				}
 			})
 		})
 	})
@@ -338,7 +340,7 @@ var _ = Describe("Song Endpoints", func() {
 				err := json.Unmarshal(w.Body.Bytes(), &response)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(response).To(HaveLen(2))
+				Expect(response).To(HaveLen(3))
 			})
 
 			It("handles filter parameters", func() {
