@@ -301,7 +301,7 @@ var _ = Describe("Song Endpoints", func() {
 				req.Header.Set(consts.UIAuthorizationHeader, "Bearer "+token)
 				router.ServeHTTP(recorder, req)
 
-				Expect(recorder.Code).To(Equal(http.StatusOK))
+				Expect(recorder.Code).To(Equal(http.StatusNoContent))
 
 				deletedTrack, err := mfRepo.Get(targetSongID)
 				Expect(err).To(HaveOccurred())
