@@ -152,11 +152,13 @@ var _ = Describe("Song Endpoints", func() {
 				err := json.Unmarshal(w.Body.Bytes(), &response)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(response).To(HaveLen(2))
+				Expect(response).To(HaveLen(3))
 				Expect(response[0].ID).To(Equal("song-1"))
 				Expect(response[0].Title).To(Equal("Test Song 1"))
 				Expect(response[1].ID).To(Equal("song-2"))
 				Expect(response[1].Title).To(Equal("Test Song 2"))
+				Expect(response[2].ID).To(Equal("song-3"))
+				Expect(response[2].Title).To(Equal("Test Song 3"))
 			})
 
 			It("handles repository errors gracefully", func() {
