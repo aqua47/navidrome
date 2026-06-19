@@ -226,7 +226,9 @@ const EditTagsDialog = ({ record, open, onClose }) => {
                 name="disc"
                 value={values.disc}
                 onChange={handleChange}
-                label={translate('resources.song.fields.disc', { discNumber: '#' })}
+                label={translate('resources.song.fields.disc', {
+                  discNumber: '#',
+                })}
                 fullWidth
                 variant="outlined"
               />
