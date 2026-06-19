@@ -90,6 +90,21 @@ var _ = Describe("Song Endpoints", func() {
 				CreatedAt: time.Now(),
 				UpdatedAt: time.Now(),
 			},
+			{
+				ID:        "song-3",
+				Title:     "Test Song 3",
+				Artist:    "Test Artist 3",
+				Album:     "Test Album 3",
+				AlbumID:   "album-3",
+				ArtistID:  "artist-3",
+				Duration:  67.0,
+				BitRate:   128,
+				Path:      "/music/song3.mp3",
+				Suffix:    "mp3",
+				Size:      3670067,
+				CreatedAt: time.Now(),
+				UpdatedAt: time.Now(),
+			},
 		}
 		mfRepo.SetData(testSongs)
 
@@ -248,7 +263,7 @@ var _ = Describe("Song Endpoints", func() {
 
 		Context("DELETE /song/{id}", func() {
 			It("should return forbidden (403)", func() {
-				targetSongID := "song-2"
+				targetSongID := "song-3"
 
 				req := createAuthenticatedRequest("DELETE", "/song/"+targetSongID, nil)
 				router.ServeHTTP(w, req)
@@ -278,7 +293,7 @@ var _ = Describe("Song Endpoints", func() {
 				token, err := auth.CreateToken(&adminUser)
 				Expect(err).ToNot(HaveOccurred())
 
-				targetSongID := "song-1"
+				targetSongID := "song-3"
 
 				req := createUnauthenticatedRequest("DELETE", "/song/"+targetSongID, nil)
 				req.Header.Set(consts.UIAuthorizationHeader, "Bearer "+token)
