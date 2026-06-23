@@ -15,12 +15,14 @@ import (
 )
 
 type SongRepository interface {
+	AddSong(ctx context.Context, song *model.MediaFile) error
 	GetSongPath(ctx context.Context, songID string) (string, error)
 	RefreshSong(ctx context.Context, songID string) error
 	DeleteSong(ctx context.Context, songID string) error
 }
 
 type MusicFileService interface {
+	UploadSong(ctx context.Context, filename string, fileData io.Reader) (*model.MediaFile, error)
 	UpdateTags(ctx context.Context, songID string, tags map[string]string) error
 	UpdateArtwork(ctx context.Context, songID string, data io.Reader, mimeType string) error
 	DeleteSong(ctx context.Context, songID string) error
