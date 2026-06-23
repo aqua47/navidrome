@@ -38,7 +38,9 @@ func (h *Handler) UploadSong(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(newSong)
+	if err := json.NewEncoder(w).Encode(newSong); err != nil {
+		return
+	}
 }
 
 func (h *Handler) UpdateSong(w http.ResponseWriter, r *http.Request) {
