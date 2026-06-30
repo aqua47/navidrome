@@ -2,6 +2,7 @@ import React, { cloneElement } from 'react'
 import { sanitizeListRestProps, TopToolbar } from 'react-admin'
 import { useMediaQuery } from '@material-ui/core'
 import { ShuffleAllButton, ToggleFieldsMenu } from '../common'
+import { UploadButton } from '../common/UploadButton'
 
 export const SongListActions = ({
   currentSort,
@@ -34,6 +35,7 @@ export const SongListActions = ({
           context: 'button',
         })}
       {isNotSmall && <ToggleFieldsMenu resource="song" />}
+      <UploadButton />
     </TopToolbar>
   )
 }
